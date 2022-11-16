@@ -177,7 +177,7 @@ def plot_dPhi(M1_1,centroids,T0,h,f,Trf, temppath,nTurns,nTrain, turn_start,turn
     
     fig1,axes1 = plt.subplots(1,1)
     fig1.set_figheight(10)
-    fig1.set_figwidth(15)
+    fig1.set_figwidth(30)
     axes1.plot(dPhases,'r.')
     axes1.set_ylabel('Phase difference [degree]',fontsize=30)
     axes1.set_xlabel('Bunch # ',fontsize=30)
@@ -186,11 +186,12 @@ def plot_dPhi(M1_1,centroids,T0,h,f,Trf, temppath,nTurns,nTrain, turn_start,turn
     fn_after = os.path.join(temppath,'Phase_Difference_'+str(turn_start)+'.png')
     plt.savefig(fn_after,bbox_inches='tight')
     plt.show()
+    
     omegarf = 2*pi/Trf
     Lambda = clight/(omegarf/2/pi)
     fig1,axes1 = plt.subplots(1,1)
     fig1.set_figheight(10)
-    fig1.set_figwidth(15)
+    fig1.set_figwidth(30)
     axes1.plot(dPhases/360*Lambda[0]*1000,'r.')
     dz = dPhases[7:]/360*Lambda[0]*1000
     dz_abs_mean = np.mean(np.abs(dz))
@@ -202,7 +203,69 @@ def plot_dPhi(M1_1,centroids,T0,h,f,Trf, temppath,nTurns,nTrain, turn_start,turn
     fn_after = os.path.join(temppath,'Position_Difference_'+str(turn_start)+'.png')
     plt.savefig(fn_after,bbox_inches='tight')
     plt.show()
+    return
+def plot_anim(n_start,n_end,n_step,omegarf,for_gif1,for_gif2,cal_dphase,nBunch,nTrain,Pattern,M1_1,centroids,f,temppath):
     
+    Lambda = clight/(omegarf/2/pi)
+    dz_abs_mean_record = []
+    dz_abs_record = []
+    
+    phi_v_train = []
+    for n in range(n_start,n_end,n_step):
+
+        turn_start = n
+        turn_end = n
+        train_start = 0
+        train_end = 0
+        bunch_start = 0
+        bunch_end = nBunch
+
+        rng1,rng2 = get_plot_idx(Pattern,turn_start,turn_end,train_start,train_end,bunch_start,bunch_end,nBunch,nTrain)
+        rng3,rng4 = get_plot_idx(Pattern,0,0,train_start,train_end,bunch_start,bunch_end,nBunch,nTrain)
+        phi_v_train.append((np.array(M1_1[rng1:rng2])-centroids[rng3:rng4])*f[0]*360)
+
+    ymin = np.min(phi_v_train)
+    ymax = np.max(phi_v_train)
+    if for_gif1:
+        for i in range(len(phi_v_train)):
+            fig1,axes1 = plt.subplots(1,1)
+            fig1.set_figheight(23.4/2)
+            fig1.set_figwidth(63.1/2)
+            axes1.plot(phi_v_train[i],'r.')
+            axes1.set_ylabel('centroid (d_phi [degree])',fontsize=30)
+            axes1.set_xlabel('Bunch # ',fontsize=30)
+            axes1.set_title("Phase slip along the train",fontsize=30)
+            #axes1.set_ylim([ymin,ymax])
+            axes1.tick_params(labelsize=30)
+            axes1.text(-20,np.max(phi_v_train[i]),"Turn number: "+str(i*n_step+n_start), fontsize=15)
+            fn_after = os.path.join(temppath,'Centroids_phi_'+'{:0>4d}'.format(n_start)+'_'+'{:0>4d}'.format(i*n_step+n_start)+'.png')
+            plt.savefig(fn_after,bbox_inches='tight')
+            plt.show()
+
+    if cal_dphase:
+        for i in range(len(phi_v_train)):
+            Phases1 = phi_v_train[i][:int(nBunch/2)]
+            Phases2 = phi_v_train[i][int(nBunch/2):]
+            dPhases = Phases1-Phases2
+            dz = dPhases[:]/360*Lambda[0]*1000
+            #print(len(dz_abs_record))
+            #print(len(dz))
+            dz_abs_mean = np.mean(np.abs(dz))
+            dz_abs_mean_record.append(dz_abs_mean)
+            dz_abs_record.append(dz)
+        fig1,axes1 = plt.subplots(1,1)
+        fig1.set_figheight(10)
+        fig1.set_figwidth(15)
+        axes1.plot(range(n_start,n_end,n_step),dz_abs_mean_record,'r.-')
+        axes1.set_ylabel('k [mm]',fontsize=30)
+        axes1.set_xlabel('Turn # ',fontsize=30)
+        axes1.set_title("k v.s. turns",fontsize=30)
+        axes1.text(800,dz_abs_mean_record[-1]*1.25,"Final mismatch: "+'{:.2e}'.format(dz_abs_mean_record[-1])+" [mm]", fontsize=15)
+        axes1.tick_params(labelsize=30)
+        fn_after = os.path.join(temppath,'Position_Difference_vs_Turn.png')
+        plt.savefig(fn_after,bbox_inches='tight')
+        plt.show()
+
 # Get the VI data
 def get_VI(datafile,n_stride,nTurns,store_step,NpRF,h,nRF,nBeam,omegarf,V0,V0Q,II,IQ):
     test = array('d')
