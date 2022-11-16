@@ -1,9 +1,0 @@
-  109 ./updateVI.cpp
-  123 ./updatePars.cpp
-   49 ./updateMs.cpp
-  558 ./main.cpp
-  156 ./init_beams.cpp
-   33 ./update_index_neighbor.cpp
-  868 ./main_gcc.cpp
-   14 ./getIQ.cpp
- 1910 total
