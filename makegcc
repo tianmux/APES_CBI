@@ -1,0 +1,10 @@
+testmake: 
+	g++ ./src/main.cpp -o main.o -fopenmp -std=c++11 -O3 -c
+	g++ ./src/getIQ.cpp -o getIQ.o -fopenmp -std=c++11 -O3 -c
+	g++ ./src/updateVI.cpp -o updateVI.o -fopenmp -std=c++11 -O3 -c
+	g++ ./src/update_index_neighbor.cpp -o update_index_neighbor.o -fopenmp -std=c++11 -O3 -c
+	g++ ./src/updateMs.cpp -o updateMs.o -fopenmp -std=c++11 -O3 -c
+	g++ ./src/updatePars.cpp -o updatePars.o -fopenmp -std=c++11 -O3 -c
+	g++ ./src/init_beams.cpp -o init_beams.o -fopenmp -std=c++11 -O3 -c
+	
+	g++ -o APESGCC main.o getIQ.o updateVI.o update_index_neighbor.o updateMs.o updatePars.o init_beams.o -fopenmp -std=c++11 -O3

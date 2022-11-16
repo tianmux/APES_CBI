@@ -1,0 +1,26 @@
+Name,Values,Comments
+QpB,		22e-9,			charge per bunch.
+nTrain, 	2 
+Pattern, 	249 6 249 6,	Bunch pattern. Number of bunches and number of vacancies.
+nBunch,     498,
+fill_step, 	424,			The number of buckets between bunches. 
+R, 		    15915.494309189535, 	The radius of the ring
+Ek, 		120e9, 		The kinetic energy of the beam in unit of eV
+Gamma0, 	234834.1420271,	The designed gamma of the beam
+GMTSQ,      140845,
+Npar,       1000,          Number of macro particles per bunch
+
+siggamma,   33,          *33.835685963738285 
+sigt,       10e-12,     The rms time length of the bunch
+
+nStation,   1,
+h, 		    216240 216240,        Harmonic number(s) of the RF
+RoQ,        25560.0 25560,    
+QL,         1589483 1589483,
+vRad,       1.825e9 1.825e9,    lost gamma per turn due to synchrotron radiation
+vSync,      1.825e9 1.825e9,
+vQuad,      1.135e9 1.135e9,
+df,         -110 -110,
+
+nWatch,     3,          Number of watch point.
+nSamp,      1,          Number of turn to sample.

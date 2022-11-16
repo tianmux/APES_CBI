@@ -1,0 +1,4 @@
+tmake: 
+	g++ -fopenmp ./update_Vb.cpp -std=c++11 -o main.o -O3 -g -xCORE-AVX2 -c
+	
+	g++ -o Cython_tests main.o -std=c++11 -fopenmp -O3 -g -xCORE-AVX2 	

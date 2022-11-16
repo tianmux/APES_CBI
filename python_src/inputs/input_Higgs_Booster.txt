@@ -1,0 +1,94 @@
+Name,Values,Comments
+QpB,		0.7e-9,			charge per bunch.
+nTrain, 	1 
+Pattern, 	240 240,		Bunch pattern. Number of bunches and number of vacancies.
+nBunch,     240,
+fill_step, 	903,			The number of buckets between bunches. 
+R, 		    15915.494309189535, 	The radius of the ring
+Ek, 		120e9, 		The kinetic energy of the beam in unit of eV
+Gamma0, 	234834.1420271,	The designed gamma of the beam
+GMTSQ,      90090 
+
+Npar,       1,          Number of macro particles per bunch
+h, 		    433440,    Harmonic number of the RF
+siggamma,   0,          *33.835685963738285 
+sigt,       10e-12,     The rms time length of the bunch
+RoQ,        49728.0,    
+QL,         49653192.09590655,
+vRad,       1.688e9,    lost gamma per turn due to synchrotron radiation
+vSync,      1.688e9,
+vQuad,      1.143e9,
+nStation,   2,
+df,         -10,
+nWatch,     3,          Number of watch point.
+nSamp,      1,          Number of turn to sample.
+
+nRF, 		3,	 
+nRF1, 		3, 
+nRFc, 		0, 
+nRF2, 		0, 
+nHOM, 		0, 
+nCav, 		45 6 9, 
+
+mainRF, 	0,			The main RF used for bucket calculation. 
+type, 1.0 
+csv_out, 0 
+dynamicOn, 0 
+n_per_show, 10 
+turn_start, 0 
+
+main_detune, 0 
+detune_slow_factor, 1.0 
+
+Gamma, 89041.27885194284 
+nBeam, 1 
+beam_shift, 94 
+
+n_turns, 10 
+n_dynamicOn, 4 
+n_bunches, 13551.0 
+n_fill, 1 
+n_q_ramp, 2 
+n_detune_start, 1 
+n_detune_ramp, 3 
+n_detune_ramp_tot, 3 
+n_I_ramp_start, 1 
+n_I_ramp_end, 3 
+step_store, 1 
+Prad, 30000000.0 
+t_rad_long, 0.425 
+Ek_damp, 100000000000.0 
+Ek_damp_always, 100000000000.0 
+
+N_bins, 11 
+
+siglong, 33.835685963738285 
+A, 1.0 
+n_ini_CBI, 1 
+mu, 0 
+CBI_ini_amp, 0 
+
+I_Q_ref_ini, -0.06518163382015267 -0.007418446435100451 -0.007418446435100452 
+I_Q_ref_final, -0.13036326764030534 -0.014836892870200902 -0.014836892870200903 
+delay, 0 0 0 
+n_fb_on, 50.0 50.0 50.0 
+gII, 0.0 0.0 0.0 
+gQQ, 0.0 0.0 0.0 
+gIQ, 0.0 0.0 0.0 
+gQI, 0.0 0.0 0.0 
+gIIi, 0.0 0.0 0.0 
+gQQi, 0.0 0.0 0.0 
+gIQi, 0.0 0.0 0.0 
+gQIi, 0.0 0.0 0.0 
+PA_cap, 1.0 1.0 1.0 
+QL, 203960.3954854233 769152.4532320931 512768.3021547288 
+Vref_I, 158366704.22868994 -27340943.26657282 -27340943.26657282 
+Vref_Q, -31856878.080330223 -1823040.2497757198 -1823040.2497757203 
+Iref_I, 0.6480610245805912 -0.22251546353202423 -0.22251546353202423 
+Iref_Q, -0.13036326764030534 -0.014836892870200902 -0.014836892870200903 
+I_I_ref_ini, 0.3240305122902956 -0.11125773176601211 -0.11125773176601211 
+I_I_ref_final, 0.6480610245805912 -0.22251546353202423 -0.22251546353202423 
+detune, 0.0 0.0 1.0 
+detune_ini, 0.0 0.0 0.0 
+detune_mid, -3960.629455924034 3168.538317024708 4752.819059729576 
+detune_final, -7921.258911848068 6337.076634049416 9505.638119459152 

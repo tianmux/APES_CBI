@@ -1,0 +1,2 @@
+#!/bin/sh
+APESGCC 2>&1 | tee out
