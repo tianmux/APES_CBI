@@ -57,6 +57,7 @@ int main(){
 
     inputPara input1;
     input1.read("input.txt");    
+    read_json();
     //input1.printout();
     int type_of_particle = input1.generalPara["type"];
     int csv_out = int(input1.generalPara["csv_out"]);

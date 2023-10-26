@@ -1,25 +1,7 @@
 #ifndef INPUTPARA_H
 #define INPUTPARA_H
-#include <jsoncpp/json/json.h>
-#include <fstream>
-#include <iostream>
 
-int read_json() {
-    Json::Value root;
-    Json::CharReaderBuilder builder;
-    std::ifstream config_doc("config.json", std::ifstream::binary);
-    std::string errs;
-    bool ok = Json::parseFromStream(builder, config_doc, &root, &errs);
-    if(!ok) {
-        // Handle error
-    }
-    const Json::Value parameter_values = root["parameter_name"];
-    for(int i = 0; i < parameter_values.size(); i++) {
-        std::cout << parameter_values[i].asString() << std::endl;
-    }
 
-    return 0;
-}
 // Class of input parameters
 class inputPara{
 public:

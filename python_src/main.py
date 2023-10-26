@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+##!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jan 21 11:59:36 2022
@@ -23,7 +23,8 @@ t_start = time.time()
 
 t0 = 0
 
-inputs = utl.Get_Inputs('./inputs/input_unitTest_CEPC_Higgs_DFB_OTFB.txt')
+#inputs = utl.Get_Inputs('./inputs/input_unitTest_CEPC_Higgs_DFB_OTFB.txt')
+inputs = utl.Get_Inputs('./inputs/BII_input_SiYuan.txt')
 # utl.Init_Beam(inputs)
 #t0s = utl.Init_Beam(inputs)
 q = np.array(inputs[inputs["Name"] == "QpB"]
@@ -99,6 +100,8 @@ for i in range(nStation):
 
 feed_step = np.array(inputs[inputs["Name"] == "feed_step"]
                      ["Values"].iloc[0].split()).astype("int")[0]
+Ek = np.array(inputs[inputs["Name"] == "Ek"]
+                     ["Values"].iloc[0].split()).astype("int")[0]
 gp = np.array(inputs[inputs["Name"] == "gp"]
               ["Values"].iloc[0].split()).astype("double")[0]
 gc = np.array(inputs[inputs["Name"] == "gc"]
@@ -132,9 +135,17 @@ Vc = vSync+1j*vQuad
 IbDC = -qPb*nBunch/T0
 Ig = (Vc/Z-IbDC*2)*act
 print("Igref = ",Ig)
-n_wait = int(1e9)
+n_wait = int(1e10)
 t0 = n_wait*Trf_main
-
+eta = 1/GMTSQ-1/Gamma0**2
+Qs = np.sqrt(h*vQuad*eta/(2*np.pi*1*Ek))
+print("Qs = ",Qs)
+phis = np.arctan(vQuad/vSync)
+Ys = np.sqrt(1-(np.pi-2*phis)/2*np.tan(phis))
+bucketHeight = 2*Qs/h/eta*Ys
+print("Bucket hieght = ",bucketHeight)
+print("Bucket height = ",bucketHeight*Gamma0)
+iBunch_plot = 399
 cavs = []
 for i in range(nStation):
     cavs.append(RF.Cav(h[i], fc[i], frf[i], RoQ[i], QL[i],
@@ -150,8 +161,12 @@ for i in range(nStation):
     #cavs[i].update_Ig(Ig[i],t0)
 
     cavs[i].Vg = Ig[i]*Z[i]
+    print("Initial Vg = ",cavs[0].Vg[0])
+
     
     cavs[i].update_Vg(t0+t0)    
+    print("Initial Vg = ",cavs[0].Vg[0])
+    
     cavs[i].update_feed_times(t0)
 
     t0 = t0+t0
@@ -167,6 +182,7 @@ Ib = qPb*nBunch/T0
 tCentroids = np.zeros(nBunch)
 ibunch = 0
 ibucket = 0
+print("t0 = ",t0)
 for i in range(nTrain):
     for j in range(pattern[i*2]):
         tCentroids[ibunch] = t0+Trf_main*ibucket
@@ -195,6 +211,7 @@ for i in range(nBunch):
             nPar] = copy.deepcopy(truncnorm.rvs(-2, 2, size=nPar)*siggamma+Gamma0)
 beam1 = particle.Beam(nPar, nBunch, ts_beam, gs_beam, qPb,
                       dim, h[0], pattern, fillStep, nSamp)
+#print("ts_beam = ",(ts_beam-t0)/Trf_main)
 # ==============================================================================
 t_start = time.time()
 
@@ -223,7 +240,9 @@ if debug2:
                     beam1, dynamic_on, feed_on, nThreads)
             if feed_on == 0:
                 cavs[icav].kick_par_beamC(beam1, dynamic_on, nThreads)
-
+            #print("updated vgs", cavs[icav].Vgs[0][0])
+            #print("updated vbs", cavs[icav].Vbs[0][0])
+            #print("Vb_ref = ",IbDC*Z*2)
             OneTurn.rad_map_beam(
                 vRad[0], Gamma0, beam1.gammas, rad_on, damp_coeff,excite_coeff)
             OneTurn.oneTurnMap_beam(
@@ -233,10 +252,47 @@ if debug2:
         tRec[i], gRec[i] = beam1.get_M1(0, nPar)
         tRec[i] -= t-t0+tCentroids[0]
         gRec[i] -= Gamma0
+
+        debug_show_voltages = 0
+        if nRamp >= 10 and i % int(nRamp/10) == 0:
+            if debug_show_voltages:
+                rng1 = -10
+                rng2 = -1
+                fig, axis = plt.subplots(2, 1)
+                axis[0].plot(cavs[0].Vgs[0][rng1:].real, '.-')
+                axis[1].plot(cavs[0].Vbs[0][rng1:].real, '.-')
+
+                axis[1].set_title("Vgs")
+
+                fig, axis = plt.subplots(2, 1)
+                axis[0].plot(cavs[0].Vgs[0].real, '.-')
+                axis[1].plot(cavs[0].Vbs[0].real, '.-')
+                print(cavs[0].Vgs[0][rng1:])
+                print(cavs[0].Vbs[0][rng1:])
+                print(cavs[0].Vgs[0][rng1:]+cavs[0].Vbs[0][rng1:])
+                print(cavs[0].Vref[0])
+
         # for icav in range(nStation):
         # cavs[icav].update_Ig(Ig[icav]*np.exp(1j*cavs[icav].wrf*t),t)
     fig, axis = plt.subplots(1, 1)
     axis.plot(tRec[:], gRec[:], 'r.', ms=1)
+    axis.set_title("Centroid motion of first bunch.")
+
+    print("Vgs:")
+    fig, axis = plt.subplots(2, 1)
+    axis[0].plot(cavs[0].Vgs[0].real, '.-')
+    axis[1].plot(cavs[0].Vbs[0].real, '.-')
+    print(cavs[0].Vgs[0][-1].real)
+    print(cavs[0].Vgs[0][-1].imag)
+    print("Vb:")
+    print(IbDC*2*Z)
+    print(cavs[0].Vbs[0][-1].real)
+    print(cavs[0].Vbs[0][-1].imag)
+    print("Vg+Vb:")
+    print(cavs[0].Vgs[0][-1]+cavs[0].Vbs[0][-1])
+    print("Vref: ")
+    print(cavs[0].Vref[0].real)
+    print(cavs[0].Vref[0].imag)
 
     dynamic_on = 1
     rad_on = 1
@@ -270,24 +326,46 @@ if debug2:
                 OneTurn.oneTurnMap_beam(GMTSQ, Gamma0, beam1.gammas, beam1.ts, T0/nStation, dynamic_on)
                 cavs[icav].update_feed_times(T0)
             t = t+T0
-            tRec1[i], gRec1[i] = beam1.get_M1(0, nPar)
-            tRec1[i] -= t-t0+tCentroids[0]
+            tRec1[i], gRec1[i] = beam1.get_M1(iBunch_plot, nPar)
+
+            tRec1[i] -= t-t0+tCentroids[iBunch_plot]
+            #print("t :",t)
+            #print("t0 :",t0)
+            #print("tCentroids[399] :",tCentroids[399])
+            #tRec1[i] -= t
+            
             # for icav in range(nStation):
             # cavs[icav].update_Ig(Ig[icav],t)
-        beam1.get_M1s(nSamp-1, Trf, t, t0, tCentroids)
-    fig, axis = plt.subplots(2, 1)
-    axis[0].plot(cavs[0].Vgs[0][0:15].real, '.-')
-    axis[1].plot(cavs[0].Vbs[0][0:15].real, '.-')
+            debug_show_voltages = 0
+            if debug_show_voltages:
+                rng1 = -10
+                rng2 = -0
+                fig, axis = plt.subplots(3, 1)
+                axis[0].plot(cavs[0].Vgs[0][rng1:].real, '.-')
+                axis[1].plot(cavs[0].Vbs[0][rng1:].real, '.-')
+                axis[2].plot(cavs[0].Vbs[0][rng1:].real+cavs[0].Vgs[0][rng1:].real, '.-')
+                axis[0].set_title("Vgs {} turns after tracking is turned on".format(i))
 
-    fig, axis = plt.subplots(2, 1)
-    axis[0].plot(cavs[0].Vgs[0].real, '.-')
-    axis[1].plot(cavs[0].Vbs[0].real, '.-')
-    print(cavs[0].Vgs[0][-1].real)
+                fig, axis = plt.subplots(3, 1)
+                axis[0].plot(cavs[0].Vgs[0].real, '.-')
+                axis[1].plot(cavs[0].Vbs[0].real, '.-')
+                axis[2].plot(cavs[0].Vbs[0].real+cavs[0].Vgs[0].real, '.-')
+                axis[1].set_title("Vgs {} turns after tracking is turned on".format(i))
+                print(cavs[0].Vgs[0][rng1:])
+                print(cavs[0].Vbs[0][rng1:])
+                print(cavs[0].Vgs[0][rng1:]+cavs[0].Vbs[0][rng1:])
+                print(cavs[0].Vref[0])
+        beam1.get_M1s(nSamp-1, Trf, t, t0, tCentroids)
+    
     gRec1 -= Gamma0
     fig, axis = plt.subplots(1, 1)
-    axis.plot(tRec1[:120], gRec1[:120], 'r.-', ms=1)
-    axis.plot(tRec1[:10], gRec1[:10], 'g.-', ms=5)
-    axis.plot(tRec1[-10:], gRec1[-10:], 'b.-', ms=5)
+    rng1=0
+    rng2=nTrack-1
+    axis.plot(tRec1[rng1:rng2]/Trf_main*360, gRec1[rng1:rng2], 'r.-', ms=1)
+    axis.set_title("Motion of {iBunch} bunch.".format(iBunch=str(iBunch_plot)))
+    fig.savefig("Centroids_"+str(time.time())+".png", bbox_inches='tight')
+    #axis.plot(tRec1[:10]/T0/np.pi*180, gRec1[:10], 'g.-', ms=5)
+    #axis.plot(tRec1[-10:]/T0/np.pi*180, gRec1[-10:], 'b.-', ms=5)
 
     for i in range(nBunch):
         #print('test1.1')
@@ -295,11 +373,12 @@ if debug2:
         #print('test1.2')
     phiBunch = tBunch/Trf_main*360
 
-    post.plot_controids(beam1, sampRate, nTrack-1,Gamma0)
+    for i in range(1,nTrack-1,1000):
+        post.plot_controids(beam1, sampRate, i,Gamma0,bucketHeight)
     fig, axis = plt.subplots(1, 1)
     fig.set_figheight(16)
     fig.set_figwidth(30)
-    axis.plot(phiBunch, 'r.', ms=10)
+    axis.plot(phiBunch[:], 'r.', ms=10)
     axis.set_xlabel("Bunch number", fontsize=30)
     axis.set_ylabel("Phase (degree)", fontsize=30)
     axis.set_title(
@@ -329,11 +408,11 @@ if debug2:
     dz = dtheta/360*Trf_main*utl.c_light*1000
     
     Amp = post.get_mode_amp(beam1, Gamma0)
-    istart = 5
-    iend = 30
+    istart = 1
+    iend = 500
     istep = 1
     b_gues = 1
-    mus = np.array([-1, -2, -3, -4, -5, -6,-7,-8,-9])
+    mus = np.array([-1, 0,1])
     OmegaIms = np.zeros(len(mus))
     mu_idx = 0
     for mu in mus:

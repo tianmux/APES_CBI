@@ -1,0 +1,37 @@
+Name,Values,Comments
+QpB,		1.61e-9,		charge per bunch.
+nTrain, 	1,
+Pattern, 	400 0,	Bunch pattern. Number of bunches and number of vacancies.
+nBunch,     400,
+fill_step, 	1,			The number of buckets between bunches. 
+R, 		    37.8, 	The radius of the ring
+Ek, 		1890189000, 		The kinetic energy of the beam in unit of eV
+Gamma0, 	3.699e+03,	The designed gamma of the beam
+GMTSQ,      5.882e+01, 	#69930.07
+Npar,       1,          Number of macro particles per bunch
+
+tau,        0.0222e11, #421.2e-3  longitudinal damping time. 
+siggamma,   220.7440935054759e-9,          *33.835685963738285 
+sigt,       2.6e-111, #10e-112     The rms time length of the bunch
+
+nStation,   1,
+
+h_0, 		  400,        Harmonic number(s) of the RF
+act_0,          1,
+RoQ_0,        47.65,   RoQ circuit definition.   
+QL_0,         2.1e5, #1e6
+vRad_0,       1.200e+05,    lost gamma per turn due to synchrotron radiation
+vSync_0,      1.200e+05,
+vQuad_0,      1.595e+06, #0.11415341e9
+df_0,         -11861,      fc-frf
+feed_step,    5,#640 needs to be the multiples of the bunch distance. 
+gp,           0,
+gc,           0,
+epsilon,        1e-3,
+delay_dt,       0.009523809523809523e-111, in unit of second.
+
+nRamp,      3000,
+nTrack,     10000,
+sampRate,   1,        Sample the M1 and M2 every sampRate turns.
+nWatch,     3,          Number of watch point.
+nThreads,   32,          Number of threads

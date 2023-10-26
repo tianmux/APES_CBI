@@ -82,6 +82,7 @@ class Cav:
         
         self.feed_step = feed_step # this is the step between each feedback update, in unit of bucket.
         self.n_feed = int(self.h[0]/self.feed_step) # number of feedback updates.
+        #print("n_feed=",self.n_feed)
         self.feed_times = np.zeros(self.n_feed)
         self.feed_buckets = np.zeros(self.n_feed).astype("int")
         self.Vtot_ref = np.ndarray((self.n_feed,len(h)),dtype='complex')
@@ -93,12 +94,15 @@ class Cav:
         self.gc = gc
         self.epsilon = epsilon
         self.delay_dt = delay_dt
-        
+        print("frf = ",frf)
         for i in range(self.n_feed):
             self.feed_buckets[i] = (i+1)*self.feed_step
-            self.feed_times[i] = (self.feed_buckets[i])/frf[0]+self.t # initialize all update time points. Need to updated every turn. Looking at the voltage at the end of the bucket
+            self.feed_times[i] = (self.feed_buckets[i])*1.0/frf[0]+self.t+1/frf[0]/4 # initialize all update time points. Need to updated every turn. Looking at the voltage at the end of the bucket
         self.feed_buckets[-1] = h[0]-1
-        self.feed_times[-1] = (self.feed_buckets[-1])/frf[0]+self.t
+        self.feed_times[-1] = (self.feed_buckets[-1])*1.0/frf[0]+self.t+1/frf[0]/4
+        print("self.t:",self.t)
+        print("feed_times: ",((self.feed_times)-self.t)*frf[0])
+        print("feed_buckets: ",self.feed_buckets)
     def PrintAll(self):
         temp = vars(self)
         for item in temp:
@@ -108,21 +112,29 @@ class Cav:
     # calculate the voltage driven by the generator current Ig, with frequency fg.
     # Ig is the phasor of generator current since last update
     # t is time between observing time and the time when the driving current was updated last time. 
-#    def calcul_Vg(self, t):
-#        # Solution to the RLC circuit by Laplace transformation
-#        dt = t-self.Tgn
-#        
-#        A = self.alpha+1j*(self.wrf+self.wL)
-##        B = self.alpha+1j*(self.wrf-self.wL)
-#        
-#        Vg = self.Ig/self.C*\
-#            (1j*self.wrf/A/B*np.exp(1j*self.wrf*dt)\
-#            +(self.alpha+1j*self.wL)/(-2j*self.wL*A)*np.exp(-(1j*self.wL+self.alpha)*dt)\
-#            +(self.alpha-1j*self.wL)/(2j*self.wL*B)*np.exp((1j*self.wL-self.alpha)*dt))\
-#           +(self.Vgm1*(np.cos(self.wL*dt)-self.alpha/self.wL*np.sin(self.wL*dt))\
-#           -self.Ugm1/self.C/self.L/(1*self.wL)*np.sin(self.wL*dt))*np.exp(-self.alpha*dt)
-#        
-#        return Vg
+    
+    #def calcul_Vg(self, t):
+    #    # Solution to the RLC circuit by Laplace transformation
+    #    dt = t-self.Tgn
+    #    #print(dt)
+    #    print(self.Tgn)
+    #    #print(t)
+    #    #print(self.Ig)
+    #    #print(self.Igm1)
+    #    # To calculate the Vg at this time point 't', we need to know the information
+    #    # of Ig, Vg, and Ug at last time point Tgn.
+
+    #    A = self.alpha+1j*(self.wrf+self.wL)
+    #    B = self.alpha+1j*(self.wrf-self.wL)
+    #    
+    #    Vg = self.Ig/self.C*\
+    #        (1j*self.wrf/A/B*np.exp(1j*self.wrf*dt)\
+    #        +(self.alpha+1j*self.wL)/(-2j*self.wL*A)*np.exp(-(1j*self.wL+self.alpha)*dt)\
+    #        +(self.alpha-1j*self.wL)/(2j*self.wL*B)*np.exp((1j*self.wL-self.alpha)*dt))\
+    #       +(self.Vgm1*(np.cos(self.wL*dt)-self.alpha/self.wL*np.sin(self.wL*dt))\
+    #       -self.Ugm1/self.C/self.L/(1*self.wL)*np.sin(self.wL*dt))*np.exp(-self.alpha*dt)
+    #    print(Vg)
+    #    return Vg
     
     def calculate_VgC(self,beam,nThreads):
         calcul_Vg(self.alpha, self.wrf, self.wL, self.C, self.L, self.Tgn, \
@@ -235,7 +247,6 @@ class Cav:
         return 0
 
     def kick_par_beamC_feed(self, beam,dynamic_on,feed_on, nThreads):
-        
         for ih in range(len(self.h)):
             self.Vadds[ih] = -self.RoQ[ih]*self.wL[ih]*beam.qs
         beam.ts, beam.gammas = utl.ArgSort(beam.ts,beam.gammas)
@@ -259,7 +270,7 @@ class Cav:
             #    print(self.feed_times[i]-beam.ts[iEndPar]-1/(self.wrf/2/pi))
             #    print((self.feed_times[i]-beam.ts[iEndPar+1])*(self.wrf/2/pi))
 
-            #    print(iEndPar)
+            #print("iEndPar = ",iEndPar)
             #if i==1:
             #    print(iStartPar)
             #    print(iEndPar)
@@ -286,7 +297,7 @@ class Cav:
             # direct feedback, zero delay. 
             # Comb filter, one turn delay.
             self.feedback(self.feed_times[i],self.gp, i, self.gc,feed_on)
-            
+             
             iStartPar = iEndPar+1
         
         beam.gammas += dynamic_on*(np.array(np.sum(np.real(self.Vgs+self.Vbs)-self.Vadds/2,axis = 0))/utl.E0e)
@@ -336,6 +347,7 @@ class Cav:
     
     def update_feed_times(self, T0):
         self.feed_times += T0
+        #print("Feedback time points: ",self.feed_times)
     
     def feedback(self,t,gp, i, gc,feed_on):
         # at the end of the feedback bucket, look at the Vg of each mode of the cavity.
@@ -352,17 +364,25 @@ class Cav:
 
         self.Tbn = t
         Vtot = self.Vg+self.Vb
-        dV = self.Vref-Vtot
+        dV = self.Vref*np.exp(1j*self.wrf*t)-Vtot
         debug = 0
         if debug ==1:
+            print("time: ",t)
             print("Vref: ",self.Vref)
             print("Vg: ",self.Vg)
             print("Vb: ",self.Vb)
             print("Vtot: ",Vtot)
+            print("Vref_t: ",self.Vref*np.exp(1j*self.wrf*t))
             print("dV: ",dV)
+            print("dVabs :",np.abs(dV))
             print("Igref: ",self.Igref)
-        S = self.Vtot_ref[i]*(1-self.epsilon)*np.exp(1j*self.wrf*self.delay_dt)+self.epsilon*Vtot
-        self.Ig = self.Igref*np.exp(1j*self.wrf*t)+(dV/self.R*gp+1/self.R*(Vtot-S)*self.gc)*feed_on
+        #S = self.Vtot_ref[i]*(1-self.epsilon)*np.exp(1j*self.wrf*self.delay_dt)+self.epsilon*Vtot
+        #self.Ig = self.Igref*np.exp(1j*self.wrf*t)+(dV/self.R*gp+1/self.R*(Vtot-S)*self.gc)*feed_on
+
+        self.Ig = self.Igref*np.exp(1j*self.wrf*t)+(dV/self.R*gp)*feed_on
+
+        #self.Ig = self.Igref+(dV/self.R*gp)*feed_on
+        #print("phase factor: ",np.exp(1j*self.wrf*t))
         if debug == 1:
             print("Ig after: ",self.Ig)
             

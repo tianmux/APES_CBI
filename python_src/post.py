@@ -22,12 +22,13 @@ from scipy.optimize import curve_fit
 def func_exp_fit(x, a, b, c):
     return a*np.exp(b*x)+c
 
-def plot_controids(beam, sampRate, iturn,Gamma0): # iturn is the turn number we are looking at  
+def plot_controids(beam, sampRate, iturn,Gamma0,bucketHieght): # iturn is the turn number we are looking at  
     fig,axis = plt.subplots(2,1)
     fig.set_figheight(16)
     fig.set_figwidth(30)
-    axis[0].plot(beam.phi_cents[iturn],'r.',ms=10)
-    axis[1].plot(beam.g_cents[iturn],'r.',ms=10)
+    axis[0].plot(beam.phi_cents[iturn][:],'r.',ms=10)
+    axis[1].plot(beam.g_cents[iturn]-Gamma0,'r.',ms=10)
+    axis[1].hlines(y=bucketHieght*Gamma0,xmin=0,xmax=len(beam.g_cents[iturn]),colors='b',linestyles='dashed')
     #axis[2].plot(np.sqrt(((beam.g_cents[iturn]-Gamma0)/Gamma0)**2+(beam.phi_cents[iturn]/np.pi)**2),'r.',ms=10)
     
     axis[0].set_xlabel("Bunch index",fontsize=30)
