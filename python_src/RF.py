@@ -11,6 +11,7 @@ import copy
 from update_Vb import update_Vb_beam
 from calculate_Vg import calcul_Vg
 from numba import njit
+import pandas as pd
 c_light = utl.c_light
 
 pi = np.pi
@@ -36,7 +37,7 @@ class Phasor:
 # Discribe the cavity
 class Cav:
     
-    def __init__(self,h, fc,frf, RoQ, QL, t,nTot,feed_step,Vref, Igref,gp,gc,epsilon,delay_dt):
+    def __init__(self,h, fc,frf, RoQ, QL, t,nTot,nSmp_V, feed_step,Vref, Igref,gp,gc,epsilon,delay_dt):
         self.h = h
         self.wc = fc*2*pi
         self.wrf = frf*2*pi
@@ -77,8 +78,8 @@ class Cav:
         self.Vadds = np.ndarray((len(h),nTot),dtype='double') # for macro particles
         
         self.Vres = np.ndarray((len(h),nTot),dtype='complex') # array to keep the records of the voltage history.
-        
-        
+        self.Vg_smp = np.ndarray((nSmp_V,len(h),nTot),dtype='complex') # array to keep the records of the voltage history.
+        self.Vb_smp = np.ndarray((nSmp_V,len(h),nTot),dtype='complex') # array to keep the records of the voltage history.
         
         self.feed_step = feed_step # this is the step between each feedback update, in unit of bucket.
         self.n_feed = int(self.h[0]/self.feed_step) # number of feedback updates.
@@ -392,7 +393,19 @@ class Cav:
         self.update_Ig(self.Ig,t)
         #print(feed_on, i, self.Vtot_ref[i], self.Vg, self.Vb,self.Ig)
         return
+    def sample(self,iSmp):
+        self.Vg_smp[iSmp] = self.Vgs
+        self.Vb_smp[iSmp] = self.Vbs
+        return 
+    
+    def dump_sample(self,fname1,fname2):
 
+        tmp_Vg = pd.DataFrame(self.Vg_smp.reshape((self.Vg_smp.shape[0],-1)))
+        tmp_Vb = pd.DataFrame(self.Vb_smp.reshape((self.Vb_smp.shape[0],-1)))
+        print(tmp_Vg)
+        tmp_Vg.to_csv(fname1)
+        tmp_Vb.to_csv(fname2)
+        return
     
     
     

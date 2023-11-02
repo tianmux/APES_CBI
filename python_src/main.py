@@ -60,10 +60,14 @@ nWatch = np.array(inputs[inputs["Name"] == "nWatch"]
 sampRate = np.array(inputs[inputs["Name"] == "sampRate"]
                     ["Values"].iloc[0].split()).astype("int")[0]
 
+sampRate_V = np.array(inputs[inputs["Name"] == "sampRate_V"]
+                    ["Values"].iloc[0].split()).astype("int")[0]
+
 nRamp = np.array(inputs[inputs["Name"] == "nRamp"]
                  ["Values"].iloc[0].split()).astype("int")[0]
 nTrack = np.array(inputs[inputs["Name"] == "nTrack"]
                   ["Values"].iloc[0].split()).astype("int")[0]
+nSmp_V = int((nTrack+nRamp)/sampRate_V)
 nSamp = int(nTrack/sampRate)+1
 nThreads = np.array(inputs[inputs["Name"] == "nThreads"]
                     ["Values"].iloc[0].split()).astype("int")[0]
@@ -149,7 +153,7 @@ iBunch_plot = 399
 cavs = []
 for i in range(nStation):
     cavs.append(RF.Cav(h[i], fc[i], frf[i], RoQ[i], QL[i],
-                t0, nPar*nBunch, feed_step, Vc[0], Ig[0], gp, gc,epsilon,delay_dt))
+                t0, nPar*nBunch, nSmp_V, feed_step, Vc[0], Ig[0], gp, gc,epsilon,delay_dt))
 
 
 for i in range(nStation):
@@ -248,6 +252,9 @@ if debug2:
             OneTurn.oneTurnMap_beam(
                 GMTSQ, Gamma0, beam1.gammas, beam1.ts, T0/nStation, dynamic_on)
             cavs[icav].update_feed_times(T0)
+        if i%sampRate_V == 0:
+            for icav in range(nStation):
+                cavs[icav].sample(int(i/sampRate_V))
         t = t+T0
         tRec[i], gRec[i] = beam1.get_M1(0, nPar)
         tRec[i] -= t-t0+tCentroids[0]
@@ -325,6 +332,9 @@ if debug2:
                 OneTurn.rad_map_beam(vRad[0], Gamma0, beam1.gammas, rad_on, damp_coeff,excite_coeff)
                 OneTurn.oneTurnMap_beam(GMTSQ, Gamma0, beam1.gammas, beam1.ts, T0/nStation, dynamic_on)
                 cavs[icav].update_feed_times(T0)
+            if (i+nRamp)%sampRate_V == 0:
+                for icav in range(nStation):
+                    cavs[icav].sample(int((i+nRamp)/sampRate_V))
             t = t+T0
             tRec1[i], gRec1[i] = beam1.get_M1(iBunch_plot, nPar)
 
@@ -357,6 +367,9 @@ if debug2:
                 print(cavs[0].Vref[0])
         beam1.get_M1s(nSamp-1, Trf, t, t0, tCentroids)
     
+    # dump the voltage data
+    for icav in range(nStation):
+        cavs[icav].dump_sample(fname1="Vg_sample_"+str(icav)+".txt", fname2="Vb_sample_"+str(icav)+".txt")
     gRec1 -= Gamma0
     fig, axis = plt.subplots(1, 1)
     rng1=0
@@ -373,7 +386,7 @@ if debug2:
         #print('test1.2')
     phiBunch = tBunch/Trf_main*360
 
-    for i in range(1,nTrack-1,1000):
+    for i in range(1,nTrack-1,10):
         post.plot_controids(beam1, sampRate, i,Gamma0,bucketHeight)
     fig, axis = plt.subplots(1, 1)
     fig.set_figheight(16)

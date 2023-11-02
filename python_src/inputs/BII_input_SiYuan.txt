@@ -1,5 +1,5 @@
 Name,Values,Comments
-QpB,		1.61e-9,		charge per bunch.
+QpB,		2e-9,		charge per bunch.
 nTrain, 	1,
 Pattern, 	400 0,	Bunch pattern. Number of bunches and number of vacancies.
 nBunch,     400,
@@ -23,15 +23,16 @@ QL_0,         2.1e5, #1e6
 vRad_0,       1.200e+05,    lost gamma per turn due to synchrotron radiation
 vSync_0,      1.200e+05,
 vQuad_0,      1.595e+06, #0.11415341e9
-df_0,         -11861,      fc-frf
-feed_step,    5,#640 needs to be the multiples of the bunch distance. 
+df_0,         -15000,      fc-frf
+feed_step,    400,#640 needs to be the multiples of the bunch distance. 
 gp,           0,
 gc,           0,
 epsilon,        1e-3,
 delay_dt,       0.009523809523809523e-111, in unit of second.
 
-nRamp,      3000,
-nTrack,     10000,
+nRamp,      30,
+nTrack,     100,
 sampRate,   1,        Sample the M1 and M2 every sampRate turns.
+sampRate_V, 1,        Sample the Voltages every sampRate_V turns. 
 nWatch,     3,          Number of watch point.
 nThreads,   32,          Number of threads
