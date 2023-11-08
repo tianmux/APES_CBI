@@ -30,8 +30,8 @@ gc,           0,
 epsilon,        1e-3,
 delay_dt,       0.009523809523809523e-111, in unit of second.
 
-nRamp,      30,
-nTrack,     100,
+nRamp,      10000,
+nTrack,     20000,
 sampRate,   1,        Sample the M1 and M2 every sampRate turns.
 sampRate_V, 1,        Sample the Voltages every sampRate_V turns. 
 nWatch,     3,          Number of watch point.

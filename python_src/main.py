@@ -369,7 +369,8 @@ if debug2:
     
     # dump the voltage data
     for icav in range(nStation):
-        cavs[icav].dump_sample(fname1="Vg_sample_"+str(icav)+".txt", fname2="Vb_sample_"+str(icav)+".txt")
+        cavs[icav].dump_sample(fname1="Vg_sample_real"+str(icav)+".txt", fname2="Vg_sample_imag"+str(icav)+".txt"\
+                        ,fname3="Vb_sample_real"+str(icav)+".txt", fname4="Vb_sample_imag"+str(icav)+".txt")
     gRec1 -= Gamma0
     fig, axis = plt.subplots(1, 1)
     rng1=0
@@ -386,7 +387,7 @@ if debug2:
         #print('test1.2')
     phiBunch = tBunch/Trf_main*360
 
-    for i in range(1,nTrack-1,10):
+    for i in range(1,nTrack-1,100):
         post.plot_controids(beam1, sampRate, i,Gamma0,bucketHeight)
     fig, axis = plt.subplots(1, 1)
     fig.set_figheight(16)

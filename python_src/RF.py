@@ -189,12 +189,14 @@ class Cav:
         return tmp1, tmp2
     
     def calculate_VgC_feed(self,beam,istart, iend, nThreads):
-        if iend>istart:
+        if iend>=istart:
             #tempVgs = self.Vgs[:,int(istart*beam.nPb):int(iend*beam.nPb)]
             tempVgs = self.Vgs[:,istart:iend+1]
+            
             calcul_Vg(self.alpha, self.wrf, self.wL, self.C, self.L, self.Tgn, \
                                   self.Ig,self.Vgm1, self.Ugm1,tempVgs,beam.ts[istart:iend+1],nThreads)
             self.Vgs[:,istart:iend+1] = copy.deepcopy(tempVgs)
+            
             #self.update_Vg(beam.ts[istart:iend+1][-1])
             #self.Tgn = beam.ts[istart:iend+1][-1]
 
@@ -233,7 +235,7 @@ class Cav:
     
     # Update the Vb with rotating phasor
     def update_Vb_beamC_feed(self, beam, istart, iend, nThreads):
-        if iend>istart:
+        if iend>=istart:
             #tempVbs = self.Vbs[:,int(istart*beam.nPb):int(iend*beam.nPb)]
             tempVbs = self.Vbs[:,istart:iend+1]
             #print(int(istart*beam.nPb)-int(iend*beam.nPb))
@@ -298,8 +300,28 @@ class Cav:
             # direct feedback, zero delay. 
             # Comb filter, one turn delay.
             self.feedback(self.feed_times[i],self.gp, i, self.gc,feed_on)
-             
+            
             iStartPar = iEndPar+1
+
+            # need to check if there is still some bunch (particle) left after the last feedback point.
+            # if there is, calculate the Vg and Vb for the rest of the bunches.
+            #print("iEndPar = ",iEndPar)
+
+            #print("iStartPar = ",iStartPar)
+            if i==self.n_feed-1 and iStartPar < len(beam.ts):
+                iEndPar = len(beam.ts)-1
+                #print("iStartPar = ",iStartPar)
+                #print("iEndPar = ",iEndPar)
+                #print("len(beam.ts) = ",len(beam.ts))
+                #print("i = ",i)
+                iEndpar = len(beam.ts)-1
+                self.calculate_VgC_feed(beam,iStartPar,iEndPar,nThreads)
+                self.Vgs=np.array(self.Vgs)
+                self.update_Vb_beamC_feed(beam, iStartPar, iEndPar, nThreads)
+                self.Vbs = np.array(self.Vbs)
+                self.feedback(beam.ts[-1],self.gp, i, self.gc,feed_on)
+                break
+
         
         beam.gammas += dynamic_on*(np.array(np.sum(np.real(self.Vgs+self.Vbs)-self.Vadds/2,axis = 0))/utl.E0e)
         return
@@ -398,13 +420,17 @@ class Cav:
         self.Vb_smp[iSmp] = self.Vbs
         return 
     
-    def dump_sample(self,fname1,fname2):
+    def dump_sample(self,fname1,fname2,fname3, fname4):
 
-        tmp_Vg = pd.DataFrame(self.Vg_smp.reshape((self.Vg_smp.shape[0],-1)))
-        tmp_Vb = pd.DataFrame(self.Vb_smp.reshape((self.Vb_smp.shape[0],-1)))
-        print(tmp_Vg)
-        tmp_Vg.to_csv(fname1)
-        tmp_Vb.to_csv(fname2)
+        tmp_Vgr = pd.DataFrame(self.Vg_smp.reshape((self.Vg_smp.shape[0],-1)).real)
+        tmp_Vgi = pd.DataFrame(self.Vg_smp.reshape((self.Vg_smp.shape[0],-1)).imag)
+        tmp_Vbr = pd.DataFrame(self.Vb_smp.reshape((self.Vb_smp.shape[0],-1)).real)
+        tmp_Vbi = pd.DataFrame(self.Vb_smp.reshape((self.Vb_smp.shape[0],-1)).imag)
+
+        tmp_Vgr.to_csv(fname1)
+        tmp_Vgi.to_csv(fname2)
+        tmp_Vbr.to_csv(fname3)
+        tmp_Vbi.to_csv(fname4)
         return
     
     
