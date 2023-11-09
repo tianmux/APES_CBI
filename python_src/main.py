@@ -17,14 +17,14 @@ import matplotlib.pyplot as plt
 import time
 from scipy.stats import truncnorm
 import copy
-
+np.set_printoptions(16)
 # ==============================================================================
 t_start = time.time()
 
 t0 = 0
 
 #inputs = utl.Get_Inputs('./inputs/input_unitTest_CEPC_Higgs_DFB_OTFB.txt')
-inputs = utl.Get_Inputs('./inputs/BII_input_SiYuan.txt')
+inputs = utl.Get_Inputs('./inputs/BII_input_SiYuan_1A_20231108.txt')
 # utl.Init_Beam(inputs)
 #t0s = utl.Init_Beam(inputs)
 q = np.array(inputs[inputs["Name"] == "QpB"]
@@ -139,7 +139,7 @@ Vc = vSync+1j*vQuad
 IbDC = -qPb*nBunch/T0
 Ig = (Vc/Z-IbDC*2)*act
 print("Igref = ",Ig)
-n_wait = int(1e10)
+n_wait = int(0e10)
 t0 = n_wait*Trf_main
 eta = 1/GMTSQ-1/Gamma0**2
 Qs = np.sqrt(h*vQuad*eta/(2*np.pi*1*Ek))
@@ -147,15 +147,29 @@ print("Qs = ",Qs)
 phis = np.arctan(vQuad/vSync)
 Ys = np.sqrt(1-(np.pi-2*phis)/2*np.tan(phis))
 bucketHeight = 2*Qs/h/eta*Ys
+df_opt = IbDC*np.sin(phis)*RoQ/np.abs(Vc)*frf
+print("IbDC = ",IbDC)
+print("df_opt = ",df_opt)
+print("Z = ",Z)
+Vb_ref = IbDC*Z*2
+print("Vb_ref = ",Vb_ref)
+print("Vg_ref = ",Ig*Z)
+print("Vc_ref = ",Vb_ref+Ig*Z)
 print("Bucket hieght = ",bucketHeight)
 print("Bucket height = ",bucketHeight*Gamma0)
-iBunch_plot = 399
+iBunch_plot = nBunch-1
 cavs = []
 for i in range(nStation):
     cavs.append(RF.Cav(h[i], fc[i], frf[i], RoQ[i], QL[i],
                 t0, nPar*nBunch, nSmp_V, feed_step, Vc[0], Ig[0], gp, gc,epsilon,delay_dt))
 
-
+IbDC = -qPb*nBunch/T0
+Vadd = -cavs[0].RoQ[0]*cavs[0].wc[0]*q
+print("Vadd = ",Vadd)
+Vbphasor = Vadd*(1/(1-np.exp(1j*cavs[0].wc*Trf*fillStep)*np.exp(-cavs[0].alpha*Trf*fillStep))-1/2)
+print("Vbphasor = ",Vbphasor)
+Ig = (Vc/Z-Vbphasor/Z)*act
+print("Igref = ",Ig)
 for i in range(nStation):
     
     cavs[i].Igm1 = Ig[i]
@@ -213,7 +227,7 @@ for i in range(nBunch):
             nPar] = copy.deepcopy(truncnorm.rvs(-2, 2, size=nPar)*sigt+tCentroids[i])
     gs_beam[i*nPar:i*nPar +
             nPar] = copy.deepcopy(truncnorm.rvs(-2, 2, size=nPar)*siggamma+Gamma0)
-beam1 = particle.Beam(nPar, nBunch, ts_beam, gs_beam, qPb,
+beam1 = particle.Beam(nPar, nBunch, ts_beam, gs_beam+1, qPb,
                       dim, h[0], pattern, fillStep, nSamp)
 #print("ts_beam = ",(ts_beam-t0)/Trf_main)
 # ==============================================================================
@@ -293,10 +307,13 @@ if debug2:
     print(cavs[0].Vgs[0][-1].imag)
     print("Vb:")
     print(IbDC*2*Z)
-    print(cavs[0].Vbs[0][-1].real)
-    print(cavs[0].Vbs[0][-1].imag)
-    print("Vg+Vb:")
-    print(cavs[0].Vgs[0][-1]+cavs[0].Vbs[0][-1])
+    print(cavs[0].Vbs[0][0].real)
+    print(cavs[0].Vbs[0][0].imag)
+    
+    print("Vadd:",Vadd)
+    print("Vg+Vb :",cavs[0].Vgs[0][-1]+cavs[0].Vbs[0][-1])
+    print("Vg+Vb-Vadd/2:")
+    print(cavs[0].Vgs[0][-1]+cavs[0].Vbs[0][-1]-Vadd/2)
     print("Vref: ")
     print(cavs[0].Vref[0].real)
     print(cavs[0].Vref[0].imag)
@@ -346,6 +363,7 @@ if debug2:
             
             # for icav in range(nStation):
             # cavs[icav].update_Ig(Ig[icav],t)
+            # print("nTurn: ", i)
             debug_show_voltages = 0
             if debug_show_voltages:
                 rng1 = -10
@@ -376,10 +394,13 @@ if debug2:
     rng1=0
     rng2=nTrack-1
     axis.plot(tRec1[rng1:rng2]/Trf_main*360, gRec1[rng1:rng2], 'r.-', ms=1)
+    axis.plot(tRec1[:10]/Trf_main*360, gRec1[:10], 'g.-', ms=5)
+    axis.plot(tRec1[-1000:]/Trf_main*360, gRec1[-1000:], 'b.-', ms=5)
+    axis.set_ylim(-2,2)
+    #axis.set_xlim(-20,20)
     axis.set_title("Motion of {iBunch} bunch.".format(iBunch=str(iBunch_plot)))
-    fig.savefig("Centroids_"+str(time.time())+".png", bbox_inches='tight')
-    #axis.plot(tRec1[:10]/T0/np.pi*180, gRec1[:10], 'g.-', ms=5)
-    #axis.plot(tRec1[-10:]/T0/np.pi*180, gRec1[-10:], 'b.-', ms=5)
+    fig.savefig("Centroids_"+str(nTrack)+"_"+str(time.time())+".png", bbox_inches='tight')
+    
 
     for i in range(nBunch):
         #print('test1.1')
@@ -387,7 +408,7 @@ if debug2:
         #print('test1.2')
     phiBunch = tBunch/Trf_main*360
 
-    for i in range(1,nTrack-1,100):
+    for i in range(1,nTrack,10000):
         post.plot_controids(beam1, sampRate, i,Gamma0,bucketHeight)
     fig, axis = plt.subplots(1, 1)
     fig.set_figheight(16)

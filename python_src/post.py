@@ -28,7 +28,7 @@ def plot_controids(beam, sampRate, iturn,Gamma0,bucketHieght): # iturn is the tu
     fig.set_figwidth(30)
     axis[0].plot(beam.phi_cents[iturn][:],'r.',ms=10)
     axis[1].plot(beam.g_cents[iturn]-Gamma0,'r.',ms=10)
-    axis[1].hlines(y=bucketHieght*Gamma0,xmin=0,xmax=len(beam.g_cents[iturn]),colors='b',linestyles='dashed')
+    #axis[1].hlines(y=bucketHieght*Gamma0,xmin=0,xmax=len(beam.g_cents[iturn]),colors='b',linestyles='dashed')
     #axis[2].plot(np.sqrt(((beam.g_cents[iturn]-Gamma0)/Gamma0)**2+(beam.phi_cents[iturn]/np.pi)**2),'r.',ms=10)
     
     axis[0].set_xlabel("Bunch index",fontsize=30)
@@ -42,7 +42,7 @@ def plot_controids(beam, sampRate, iturn,Gamma0,bucketHieght): # iturn is the tu
     axis[1].tick_params(labelsize=30)
 
     save_time = time.time()
-    fig.savefig("./figs/Centroids"+str(save_time)+".png",bbox_inches='tight')
+    fig.savefig("./figs/Centroids_"+str(iturn)+".png",bbox_inches='tight')
 
 def get_mode_amp(beam,Gamma0):
     Amp = np.ndarray((len(beam.g_cents),len(beam.g_cents[0]))).astype(complex)

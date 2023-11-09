@@ -48,8 +48,8 @@ class Cav:
         self.L = self.RoQ**2*self.C
         self.Z = self.R/(1+1j*QL*(frf/fc-fc/frf))
         self.t = t
-        self.alpha = self.wc/(2*self.QL)
         self.wL = np.sqrt(1-1/(4*self.QL**2))*self.wc
+        self.alpha = self.wc/(2*self.QL)
         self.Vref = Vref
         self.Igref = Igref
         self.Ig = np.ndarray(len(h),dtype='complex')  # Generator current. Only keep the record of last update
@@ -138,7 +138,7 @@ class Cav:
     #    return Vg
     
     def calculate_VgC(self,beam,nThreads):
-        calcul_Vg(self.alpha, self.wrf, self.wL, self.C, self.L, self.Tgn, \
+        calcul_Vg(self.alpha, self.wrf, self.wc, self.C, self.L, self.Tgn, \
                               self.Ig,self.Vgm1, self.Ugm1,self.Vgs,beam.ts,nThreads)
         return 1
     # Update the voltage driven by the generator current Ig, with frequency fg.
@@ -152,32 +152,32 @@ class Cav:
         #print("Igm1: ",self.Igm1)
         # To calculate the Vg at this time point 't', we need to know the information 
         # of Ig, Vg, and Ug at last time point Tgn.
-        A = self.alpha+1j*(self.wrf+self.wL)
-        B = self.alpha+1j*(self.wrf-self.wL)
+        A = self.alpha+1j*(self.wrf+self.wc)
+        B = self.alpha+1j*(self.wrf-self.wc)
         #print(dt)
         self.Vg = np.abs(self.Ig)/self.C*np.exp(1j*np.angle(self.Ig))*\
             (1j*self.wrf/A/B*np.exp(1j*self.wrf*dt)\
-            +(self.alpha+1j*self.wL)/(-2j*self.wL*A)*np.exp(-(1j*self.wL+self.alpha)*dt)\
-            +(self.alpha-1j*self.wL)/(2j*self.wL*B)*np.exp((1j*self.wL-self.alpha)*dt))\
-            +(self.Vgm1*(np.cos(self.wL*dt)-self.alpha/self.wL*np.sin(self.wL*dt))\
-            -self.Ugm1/self.C/self.L/(1*self.wL)*np.sin(self.wL*dt))*np.exp(-self.alpha*dt)
+            +(self.alpha+1j*self.wc)/(-2j*self.wc*A)*np.exp(-(1j*self.wc+self.alpha)*dt)\
+            +(self.alpha-1j*self.wc)/(2j*self.wc*B)*np.exp((1j*self.wc-self.alpha)*dt))\
+            +(self.Vgm1*(np.cos(self.wc*dt)-self.alpha/self.wc*np.sin(self.wc*dt))\
+            -self.Ugm1/self.C/self.L/(1*self.wc)*np.sin(self.wc*dt))*np.exp(-self.alpha*dt)
         
         tmp1 = self.Ig/self.C*\
             (1j*self.wrf/A/B*np.exp(1j*self.wrf*dt)\
-            +(self.alpha+1j*self.wL)/(-2j*self.wL*A)*np.exp(-(1j*self.wL+self.alpha)*dt)\
-            +(self.alpha-1j*self.wL)/(2j*self.wL*B)*np.exp((1j*self.wL-self.alpha)*dt))
+            +(self.alpha+1j*self.wc)/(-2j*self.wc*A)*np.exp(-(1j*self.wc+self.alpha)*dt)\
+            +(self.alpha-1j*self.wc)/(2j*self.wc*B)*np.exp((1j*self.wc-self.alpha)*dt))
         #print("phi: ",self.wrf*dt)
         #print("dI: ",self.Ig-self.Igref)
-        tmp2 = (self.Vgm1*(np.cos(self.wL*dt)-self.alpha/self.wL*np.sin(self.wL*dt))\
-            -self.Ugm1/self.C/self.L/(1*self.wL)*np.sin(self.wL*dt))*np.exp(-self.alpha*dt)
+        tmp2 = (self.Vgm1*(np.cos(self.wc*dt)-self.alpha/self.wc*np.sin(self.wc*dt))\
+            -self.Ugm1/self.C/self.L/(1*self.wc)*np.sin(self.wc*dt))*np.exp(-self.alpha*dt)
         #print(self.Vgm1)
         #print(self.Ugm1)
         Vgp = np.abs(self.Ig)/self.C*np.exp(1j*np.angle(self.Ig))*\
             (-self.wrf**2/A/B*np.exp(1j*self.wrf*dt)\
-            +(self.alpha+1j*self.wL)**2/(2j*self.wL*A)*np.exp(-(1j*self.wL+self.alpha)*dt)\
-            +(self.alpha-1j*self.wL)**2/(-2j*self.wL*B)*np.exp((1j*self.wL-self.alpha)*dt))\
-            +self.Vgm1*np.exp(-self.alpha*dt)*((-2*self.alpha)*np.cos(self.wL*dt)+(self.alpha**2/self.wL-self.wL)*np.sin(self.wL*dt))\
-            -self.Ugm1/self.C/self.L*np.exp(-self.alpha*dt)*(-self.alpha/self.wL*np.sin(self.wL*dt)+np.cos(self.wL*dt))
+            +(self.alpha+1j*self.wc)**2/(2j*self.wc*A)*np.exp(-(1j*self.wc+self.alpha)*dt)\
+            +(self.alpha-1j*self.wc)**2/(-2j*self.wc*B)*np.exp((1j*self.wc-self.alpha)*dt))\
+            +self.Vgm1*np.exp(-self.alpha*dt)*((-2*self.alpha)*np.cos(self.wc*dt)+(self.alpha**2/self.wc-self.wc)*np.sin(self.wc*dt))\
+            -self.Ugm1/self.C/self.L*np.exp(-self.alpha*dt)*(-self.alpha/self.wc*np.sin(self.wc*dt)+np.cos(self.wc*dt))
         #print("Ig: ",self.Ig)
         #print("Igm1: ",self.Igm1)
         self.Ug = self.L*(self.Ig[0]*np.exp(1j*self.wrf*dt)-1/self.R*self.Vg[0]-self.C*Vgp[0])
@@ -193,7 +193,7 @@ class Cav:
             #tempVgs = self.Vgs[:,int(istart*beam.nPb):int(iend*beam.nPb)]
             tempVgs = self.Vgs[:,istart:iend+1]
             
-            calcul_Vg(self.alpha, self.wrf, self.wL, self.C, self.L, self.Tgn, \
+            calcul_Vg(self.alpha, self.wrf, self.wc, self.C, self.L, self.Tgn, \
                                   self.Ig,self.Vgm1, self.Ugm1,tempVgs,beam.ts[istart:iend+1],nThreads)
             self.Vgs[:,istart:iend+1] = copy.deepcopy(tempVgs)
             
@@ -220,12 +220,12 @@ class Cav:
     # calculate the Vb with rotating phasor
     def calcul_Vb(self, t):
         dt = t-self.Tbn
-        return self.Vb*np.exp((1j*self.wL-self.alpha)*dt)
+        return self.Vb*np.exp((1j*self.wc-self.alpha)*dt)
     
     # Update the Vb with rotating phasor
     def update_Vb_beamC(self, beam,nThreads):
         
-        update_Vb_beam(self.Vbs, beam.ts, self.Vadds, self.wL, self.alpha, self.Vb, self.Tbn,nThreads)
+        update_Vb_beam(self.Vbs, beam.ts, self.Vadds, self.wc, self.alpha, self.Vb, self.Tbn,nThreads)
         #print("dphi =", dt*self.wrf)
         #print(Vadd)
         self.Vb = copy.deepcopy(self.Vbs.T[-1])
@@ -240,7 +240,7 @@ class Cav:
             tempVbs = self.Vbs[:,istart:iend+1]
             #print(int(istart*beam.nPb)-int(iend*beam.nPb))
             tempVadds = self.Vadds[:,istart:iend+1]
-            update_Vb_beam(tempVbs, beam.ts[istart:iend+1],  tempVadds, self.wL, self.alpha, self.Vb, self.Tbn,nThreads)
+            update_Vb_beam(tempVbs, beam.ts[istart:iend+1],  tempVadds, self.wc, self.alpha, self.Vb, self.Tbn,nThreads)
             #print("dphi =", dt*self.wrf)
             #print(Vadd)
             self.Vb = copy.deepcopy(tempVbs.T[-1])
@@ -251,7 +251,8 @@ class Cav:
 
     def kick_par_beamC_feed(self, beam,dynamic_on,feed_on, nThreads):
         for ih in range(len(self.h)):
-            self.Vadds[ih] = -self.RoQ[ih]*self.wL[ih]*beam.qs
+            self.Vadds[ih] = -self.RoQ[ih]*self.wc[ih]*beam.qs
+        #print("Vadds: ",self.Vadds)
         beam.ts, beam.gammas = utl.ArgSort(beam.ts,beam.gammas)
         istart = 0 # the starting index of bunch
         iend = 0 # the ending index of bunch
@@ -310,10 +311,10 @@ class Cav:
             #print("iStartPar = ",iStartPar)
             if i==self.n_feed-1 and iStartPar < len(beam.ts):
                 iEndPar = len(beam.ts)-1
-                #print("iStartPar = ",iStartPar)
-                #print("iEndPar = ",iEndPar)
-                #print("len(beam.ts) = ",len(beam.ts))
-                #print("i = ",i)
+                print("iStartPar = ",iStartPar)
+                print("iEndPar = ",iEndPar)
+                print("len(beam.ts) = ",len(beam.ts))
+                print("i = ",i)
                 iEndpar = len(beam.ts)-1
                 self.calculate_VgC_feed(beam,iStartPar,iEndPar,nThreads)
                 self.Vgs=np.array(self.Vgs)
@@ -324,6 +325,11 @@ class Cav:
 
         
         beam.gammas += dynamic_on*(np.array(np.sum(np.real(self.Vgs+self.Vbs)-self.Vadds/2,axis = 0))/utl.E0e)
+        #print("Vgs: ",self.Vgs)
+        #print("Vbs: ",self.Vbs)
+        #print("Vadds: ",self.Vadds)
+        #print("Vg+Vb-Vadd/2 :",self.Vgs+self.Vbs-self.Vadds/2)
+        #print("beam.gammas: ",beam.gammas)
         return
     
     def kick_par_beamC(self,beam,dynamic_on,nThreads):
@@ -349,7 +355,10 @@ class Cav:
         self.Vbs = np.array(self.Vbs)
 
         beam.gammas += dynamic_on*(np.array(np.sum(np.real(self.Vgs+self.Vbs)-self.Vadds/2,axis = 0))/utl.E0e)
-        
+        #print("Vgs: ",self.Vgs)
+        #print("Vbs: ",self.Vbs)
+        #print("Vadds: ",self.Vadds)
+        #print("Vg+Vb-Vadd/2 :",self.Vgs+self.Vbs-self.Vadds/2)
         #if dynamic_on:
         #    print((ts-t0)*1e6)
         #    print(gammas)

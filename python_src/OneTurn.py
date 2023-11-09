@@ -10,8 +10,13 @@ import utl
 
 def oneTurnMap_beam(GMTSQ,Gamma0,gamma,t,T0,dynamic_on):
     eta = 1/GMTSQ-1/Gamma0**2
+    #print("eta: ",eta)
     delta = gamma/Gamma0-1
+    #print("t :",t)
     t += T0*(1+delta*eta*dynamic_on)
+    #print("t1 :",T0*delta*eta)
+   # print("Gamma :",gamma)
+    #print("delta: ",delta)
 
 def rad_map_beam(vRad,Gamma0, gamma,rad_on,damp_coeff,excit_coeff):
     tmp_rand = np.random.uniform(-3,1,len(gamma))
